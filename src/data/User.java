@@ -182,7 +182,7 @@ public class User {
 	 * @throws SQLException
 	 * @throws NullPointerException
 	 */
-	static public User loadById(Connection connection, int id) throws SQLException, NullPointerException {
+	static public User loadById(Connection connection, int id) throws SQLException {
 		String sql = "SELECT * FROM user where id=?";
 		PreparedStatement preparedStatement = connection.prepareStatement(sql);
 		preparedStatement.setInt(1, id);
@@ -231,7 +231,7 @@ public class User {
 	@Override
 	public String toString() {
 		StringBuilder sb = new StringBuilder();
-		sb.append(this.getUsername()).append(" ").append(this.getEmail());
+		sb.append(this.getUsername()).append(", ").append(this.getEmail());
 		return sb.toString();
 	}
 
