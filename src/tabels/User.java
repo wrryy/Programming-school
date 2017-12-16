@@ -8,25 +8,26 @@ import java.sql.Statement;
 import java.util.ArrayList;
 
 import org.mindrot.jbcrypt.BCrypt;
-//import com.sun.org.apache.bcel.internal.util.BCELifier;
 
 public class User {
 
 	private int id = 0;
 	private String username;
-	private String password;
+	 String password;
 	private String email;
+	private int userGroupId;
 
 	// Wczytywanie z bazy
 	public User() {
 	}
 
 	// Tworzenie nowego
-	public User(String username, String password, String email) {
+	public User(String username, String password, String email, int userGroupId) {
 		super();
 		setUsername(username);
 		setPassword(password);
 		setEmail(email);
+		setUserGroupId(userGroupId);
 	}
 
 	public String getUsername() {
@@ -60,19 +61,28 @@ public class User {
 		return id;
 	}
 
-	private User setId(int id) {
+	User setId(int id) {
 		this.id = id;
 		return this;
+	}
+
+	public int getUserGroupId() {
+		return userGroupId;
+	}
+
+	public void setUserGroupId(int userGroupId) {
+		this.userGroupId = userGroupId;
 	}
 
 	public User saveToDB(Connection conn) throws SQLException {
 		if (this.getId() == 0) {
 			String[] generatedColumns = { "id" };
 			PreparedStatement pst = conn.prepareStatement(
-					"Insert into  user( username, password, email) Values( ?, ?, ?)", generatedColumns);
+					"Insert into  user( username, password, email, user_group_id) Values( ?, ?, ?, ?)", generatedColumns);
 			pst.setString(1, this.getUsername());
 			pst.setString(2, this.getPassword());
 			pst.setString(3, this.getEmail());
+			pst.setInt(4, getUserGroupId());
 			pst.executeUpdate();
 			ResultSet rs = pst.getGeneratedKeys();
 			if (rs.next()) {
@@ -80,60 +90,98 @@ public class User {
 			}
 		} else {
 			PreparedStatement pst = conn
-					.prepareStatement("Update user Set username=?, password=?, email=? Where id = ?");
+					.prepareStatement("Update user Set username=?, password=?, email=?, user_group_id=? Where id = ?");
 			pst.setString(1, this.getUsername());
 			pst.setString(2, this.getPassword());
 			pst.setString(3, this.getEmail());
-			pst.setInt(4, this.getId());
+			pst.setInt(4, getUserGroupId());
+			pst.setInt(5, this.getId());
 			pst.executeUpdate();
 		}
 		return this;
 	}
 
-	static public User[] loadAllUsers(Connection conn) throws SQLException {
+	static public User[] loadAll(Connection conn) throws SQLException {
 		ArrayList<User> users = new ArrayList<>();
 		Statement st = conn.createStatement();
 		ResultSet rs = st.executeQuery("Select * from user");
 
 		while (rs.next()) {
-			User tmpUSer = new User();
-			tmpUSer.setUsername(rs.getString("username"));
-			tmpUSer.setEmail(rs.getString("email"));
-			tmpUSer.password = rs.getString("password");
-			tmpUSer.setId(rs.getInt("id"));
-			users.add(tmpUSer);
+			User tempUser = new User();
+			tempUser.setUsername(rs.getString("username"));
+			tempUser.setEmail(rs.getString("email"));
+			tempUser.password = rs.getString("password");
+			tempUser.setUserGroupId(rs.getInt("user_group_id"));
+			tempUser.setId(rs.getInt("id"));
+			users.add(tempUser);
+		}
+		User[] userArray = new User[users.size()];
+		users.toArray(userArray);
+		return userArray;
+	}
+	static public User[] loadUsersByGroup(Connection conn, int id) throws SQLException {
+		ArrayList<User> users = new ArrayList<>();
+		PreparedStatement st = conn.prepareStatement("Select * from user where user_group_id=?");
+		st.setInt(1, id);
+		ResultSet rs = st.executeQuery();
+		
+		while (rs.next()) {
+			User tempUser = new User();
+			tempUser.setUsername(rs.getString("username"));
+			tempUser.setEmail(rs.getString("email"));
+			tempUser.password = rs.getString("password");
+			tempUser.setId(rs.getInt("id"));
+			users.add(tempUser);
 		}
 		User[] userArray = new User[users.size()];
 		users.toArray(userArray);
 		return userArray;
 	}
 
-	static public User loadUserById(Connection conn, int id) throws SQLException, NullPointerException {
+	static public User loadById(Connection conn, int id) throws SQLException, NullPointerException {
 		String sql = "SELECT * FROM user where id=?";
 		PreparedStatement preparedStatement = conn.prepareStatement(sql);
 		preparedStatement.setInt(1, id);
-		ResultSet resultSet = preparedStatement.executeQuery();
-		if (resultSet.next()) {
-			User loadedUser = new User();
-			loadedUser.id = resultSet.getInt("id");
-			loadedUser.username = resultSet.getString("username");
-			loadedUser.password = resultSet.getString("password");
-			loadedUser.email = resultSet.getString("email");
-			return loadedUser;
-		} 
+		ResultSet rs = preparedStatement.executeQuery();
+		if (rs.next()) {
+			User tempUser = new User();
+			tempUser.id = rs.getInt("id");
+			tempUser.username = rs.getString("username");
+			tempUser.password = rs.getString("password");
+			tempUser.email = rs.getString("email");
+			tempUser.userGroupId = rs.getInt("user_group_id");
+			return tempUser;
+		}
 		return null;
 	}
-
+	 public Solution[] loadSolutions(Connection conn) throws SQLException {
+		ArrayList<Solution> solutions = new ArrayList<>();
+		String sql = "SELECT * FROM solution where user_id=?";
+		PreparedStatement st = conn.prepareStatement(sql);
+		st.setInt(1, this.getId());
+		ResultSet rs = st.executeQuery();
+		
+		while (rs.next()) {
+			Solution tempSolution = new Solution();
+			tempSolution.setCreated(rs.getDate("created"));
+			tempSolution.setUpdated(rs.getDate("updated"));
+			tempSolution.setDescription(rs.getString("description"));
+			tempSolution.setExcerciseId(rs.getInt("excercise_id"));
+			tempSolution.setUserId(rs.getInt("user_id"));
+			tempSolution.setId(rs.getInt("id"));
+			solutions.add(tempSolution);
+		}
+		Solution[] solutionArray = new Solution[solutions.size()];
+		solutions.toArray(solutionArray);
+		return solutionArray;
+	}
 	public void delete(Connection conn) throws SQLException {
 		if (this.id != 0) {
 			String sql = "DELETE FROM user WHERE id= ?";
-			PreparedStatement preparedStatement;
-			preparedStatement = conn.prepareStatement(sql);
+			PreparedStatement preparedStatement = conn.prepareStatement(sql);
 			preparedStatement.setInt(1, this.id);
 			preparedStatement.executeUpdate();
 			this.id = 0;
-		}else {
-			System.out.println("No user with this id!");
 		}
 	}
 
