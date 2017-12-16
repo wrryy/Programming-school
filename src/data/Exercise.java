@@ -1,4 +1,4 @@
-package tabels;
+package data;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -45,10 +45,15 @@ public class Exercise {
 		this.description = description;
 	}
 
-	public Exercise saveToDB(Connection conn) throws SQLException {
+	/**Inserts Exercise to DB if it do not exists, otherwise updates the existing one.
+	 * 
+	 * @param connection
+	 * @return Exercise
+	 */
+	public Exercise saveToDB(Connection connection) throws SQLException {
 		if (this.getId() == 0) {
 			String[] generatedColumns = { "id" };
-			PreparedStatement pst = conn.prepareStatement(
+			PreparedStatement pst = connection.prepareStatement(
 					"Insert into  exercise(title, description) Values( ?, ?)",
 					generatedColumns);
 			pst.setString(1, this.getTitle());
@@ -59,7 +64,7 @@ public class Exercise {
 				this.setId(rs.getInt(1));
 			}
 		} else {
-			PreparedStatement pst = conn
+			PreparedStatement pst = connection
 					.prepareStatement("Update exercise Set title=?, description=? Where id = ?");
 			pst.setString(1, this.getTitle());
 			pst.setString(2, this.getDescription());
@@ -68,10 +73,31 @@ public class Exercise {
 		}
 		return this;
 	}
-
-	static public Exercise[] loadAll(Connection conn) throws SQLException {
+	
+	/**Deletes Exercise from DB
+	 * 
+	 * @param connection
+	 * @throws SQLException
+	 */
+	public void delete(Connection connection) throws SQLException {
+		if (this.id != 0) {
+			String sql = "DELETE FROM exercise WHERE id= ?";
+			PreparedStatement preparedStatement = connection.prepareStatement(sql);
+			preparedStatement.setInt(1, this.id);
+			preparedStatement.executeUpdate();
+			this.id = 0;
+		}
+	}
+	
+	/**Returns list of all Exercises.
+	 * 
+	 * @param connection
+	 * @return Exercise[]
+	 * @throws SQLException
+	 */
+	static public Exercise[] loadAll(Connection connection) throws SQLException {
 		ArrayList<Exercise> excercises = new ArrayList<>();
-		Statement st = conn.createStatement();
+		Statement st = connection.createStatement();
 		ResultSet rs = st.executeQuery("Select * from exercise");
 
 		while (rs.next()) {
@@ -85,10 +111,18 @@ public class Exercise {
 		excercises.toArray(exerciseArray);
 		return exerciseArray;
 	}
-
-	static public Exercise loadById(Connection conn, int id) throws SQLException, NullPointerException {
+	
+	/**Returns Exercise by given exercise.id.
+	 * 
+	 * @param connection
+	 * @param id
+	 * @return Exercise
+	 * @throws SQLException
+	 * @throws NullPointerException
+	*/
+	static public Exercise loadById(Connection connection, int id) throws SQLException, NullPointerException {
 		String sql = "SELECT * FROM exercise where id=?";
-		PreparedStatement preparedStatement = conn.prepareStatement(sql);
+		PreparedStatement preparedStatement = connection.prepareStatement(sql);
 		preparedStatement.setInt(1, id);
 		ResultSet rs = preparedStatement.executeQuery();
 		if (rs.next()) {
@@ -101,10 +135,16 @@ public class Exercise {
 		return null;
 	}
 
-	public Solution[] loadSolutions(Connection conn) throws SQLException {
+	/**Returns list of all User Solutions of the Exercise.
+	 * 	
+	 * @param connection
+	 * @return Solution[]
+	 * @throws SQLException
+	 */
+	 public Solution[] loadSolutions(Connection connection) throws SQLException {
 		ArrayList<Solution> solutions = new ArrayList<>();
-		String sql = "SELECT * FROM solution where exercise_id=?";
-		PreparedStatement st = conn.prepareStatement(sql);
+		String sql = "SELECT * FROM solution where exercise_id=? order by created desc";
+		PreparedStatement st = connection.prepareStatement(sql);
 		st.setInt(1, this.getId());
 		ResultSet rs = st.executeQuery();
 
@@ -122,16 +162,33 @@ public class Exercise {
 		solutions.toArray(solutionArray);
 		return solutionArray;
 	}
-
-	public void delete(Connection conn) throws SQLException {
-		if (this.id != 0) {
-			String sql = "DELETE FROM exercise WHERE id= ?";
-			PreparedStatement preparedStatement = conn.prepareStatement(sql);
-			preparedStatement.setInt(1, this.id);
-			preparedStatement.executeUpdate();
-			this.id = 0;
+	 
+	 /**Returns list of Solutions of specific User.
+	  * 	
+	  * @param connection
+	  * @param id
+	  * @return Solution[]
+	  * @throws SQLException
+	  */
+	 public Solution loadSolutionByUser(Connection connection, int id) throws SQLException {
+		 String sql = "SELECT * FROM solution where user_id=?";
+			PreparedStatement preparedStatement = connection.prepareStatement(sql);
+			preparedStatement.setInt(1, id);
+			ResultSet rs = preparedStatement.executeQuery();
+			if (rs.next()) {
+				Solution tempSolution = new Solution();
+				tempSolution.setCreated(rs.getDate("created"));
+				tempSolution.setUpdated(rs.getDate("updated"));
+				tempSolution.setDescription(rs.getString("description"));
+				tempSolution.setExcerciseId(rs.getInt("excercise_id"));
+				tempSolution.setUserId(rs.getInt("user_id"));
+				tempSolution.setId(rs.getInt("id"));
+				return tempSolution;
+			}
+			return null;
 		}
-	}
+	
+	
 
 	@Override
 	public String toString() {

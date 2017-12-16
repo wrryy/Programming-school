@@ -1,4 +1,4 @@
-package tabels;
+package data;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -35,11 +35,15 @@ public class UserGroup {
 		this.name = name;
 		return this;
 	}
-	
-	public UserGroup saveToDB(Connection conn) throws SQLException {
+	/**Inserts UserGroup to DB if it do not exists, otherwise updates the existing one.
+	 * 
+	 * @param connection
+	 * @return UserGroup
+	 */
+	public UserGroup saveToDB(Connection connection) throws SQLException {
 		if (this.getId() == 0) {
 			String[] generatedColumns = { "id" };
-			PreparedStatement pst = conn.prepareStatement(
+			PreparedStatement pst = connection.prepareStatement(
 					"Insert into  user_group(name) Values(?)", generatedColumns);
 			pst.setString(1, this.getName());
 			pst.executeUpdate();
@@ -48,7 +52,7 @@ public class UserGroup {
 				this.setId(rs.getInt(1));
 			}
 		} else {
-			PreparedStatement pst = conn
+			PreparedStatement pst = connection
 					.prepareStatement("Update user_group Set name=? Where id = ?");
 			pst.setString(1, this.getName());
 			pst.setInt(2, this.getId());
@@ -56,10 +60,31 @@ public class UserGroup {
 		}
 		return this;
 	}
-
-	static public UserGroup[] loadAll(Connection conn) throws SQLException {
+	
+	/**Deletes UserGroup from DB.
+	  * 
+	  * @param connection
+	  * @throws SQLException
+	  */
+	public void delete(Connection connection) throws SQLException {
+		if (this.id != 0) {
+			String sql = "DELETE FROM user_group WHERE id= ?";
+			PreparedStatement preparedStatement = connection.prepareStatement(sql);
+			preparedStatement.setInt(1, this.id);
+			preparedStatement.executeUpdate();
+			this.id = 0;
+		}
+	}
+	
+	/**Returns list of all UserGroups.
+	 * 
+	 * @param Connection connection
+	 * @return UserGroup[]
+	 * @throws SQLException
+	 */
+	static public UserGroup[] loadAll(Connection connection) throws SQLException {
 		ArrayList<UserGroup> userGroups = new ArrayList<>();
-		Statement st = conn.createStatement();
+		Statement st = connection.createStatement();
 		ResultSet rs = st.executeQuery("Select * from user_group");
 
 		while (rs.next()) {
@@ -72,9 +97,16 @@ public class UserGroup {
 		userGroups.toArray(userArray);
 		return userArray;
 	}
-	 public User[] loadUsers(Connection conn) throws SQLException {
+	
+	/**Returns list of Users in User Group.
+	 * 
+	 * @param connection
+	 * @return User[]
+	 * @throws SQLException
+	 */
+	 public User[] loadUsers(Connection connection) throws SQLException {
 		ArrayList<User> users = new ArrayList<>();
-		PreparedStatement st = conn.prepareStatement("Select * from user where user_group_id=?");
+		PreparedStatement st = connection.prepareStatement("Select * from user where user_group_id=?");
 		st.setInt(1, this.getId());
 		ResultSet rs = st.executeQuery();
 		
@@ -90,9 +122,18 @@ public class UserGroup {
 		users.toArray(userArray);
 		return userArray;
 	}
-	static public UserGroup loadById(Connection conn, int id) throws SQLException, NullPointerException {
+	 
+	 /**Returns UserGroup by given user_group.id.
+	 * 
+	 * @param connection
+	 * @param id
+	 * @return UserGroup
+	 * @throws SQLException
+	 * @throws NullPointerException
+	 */
+	static public UserGroup loadById(Connection connection, int id) throws SQLException, NullPointerException {
 		String sql = "SELECT * FROM user_group where id=?";
-		PreparedStatement preparedStatement = conn.prepareStatement(sql);
+		PreparedStatement preparedStatement = connection.prepareStatement(sql);
 		preparedStatement.setInt(1, id);
 		ResultSet resultSet = preparedStatement.executeQuery();
 		if (resultSet.next()) {
@@ -103,16 +144,7 @@ public class UserGroup {
 		} 
 		return null;
 	}
-
-	public void delete(Connection conn) throws SQLException {
-		if (this.id != 0) {
-			String sql = "DELETE FROM user_group WHERE id= ?";
-			PreparedStatement preparedStatement = conn.prepareStatement(sql);
-			preparedStatement.setInt(1, this.id);
-			preparedStatement.executeUpdate();
-			this.id = 0;
-		}
-	}
+	
 
 	@Override
 	public String toString() {

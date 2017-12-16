@@ -1,4 +1,4 @@
-package tabels;
+package data;
 
 import java.sql.Connection;
 import java.sql.Date;
@@ -27,7 +27,7 @@ public class Solution {
 		setExcerciseId(excerciseId);
 		setUserId(userId);
 	}
-
+	
 	public int getId() {
 		return id;
 	}
@@ -75,11 +75,16 @@ public class Solution {
 	public void setUserId(int userId) {
 		this.userId = userId;
 	}
-
-	public Solution saveToDB(Connection conn) throws SQLException {
+	
+	/**Inserts Solution to DB if it do not exists, otherwise updates the existing one.
+	 * 
+	 * @param connection
+	 * @return Solution
+	 */
+	public Solution saveToDB(Connection connection) throws SQLException {
 		if (this.getId() == 0) {
 			String[] generatedColumns = { "id" };
-			PreparedStatement pst = conn.prepareStatement(
+			PreparedStatement pst = connection.prepareStatement(
 					"Insert into  solution(created, updated, description, excercise_id, user_id) Values(?, ?, ?, ?, ?)",
 					generatedColumns);
 			pst.setDate(1, this.getCreated());
@@ -93,7 +98,7 @@ public class Solution {
 				this.setId(rs.getInt(1));
 			}
 		} else {
-			PreparedStatement pst = conn.prepareStatement(
+			PreparedStatement pst = connection.prepareStatement(
 					"Update solution Set created=?, updated=?, description=?, excercise_id=?, user_id=? Where id = ?");
 			pst.setDate(1, this.getCreated());
 			pst.setDate(2, this.getUpdated());
@@ -106,9 +111,31 @@ public class Solution {
 		return this;
 	}
 
-	static public Solution[] loadAll(Connection conn) throws SQLException {
+	/**Deletes Solution from DB.
+	  * 
+	  * @param connection
+	  * @throws SQLException
+	  */
+	public void delete(Connection connection) throws SQLException {
+		if (this.id != 0) {
+			String sql = "DELETE FROM solution WHERE id= ?";
+			PreparedStatement preparedStatement = connection.prepareStatement(sql);
+			preparedStatement.setInt(1, this.id);
+			preparedStatement.executeUpdate();
+			this.id = 0;
+		}
+	}
+
+	
+	/**Returns list of all Solutions.
+	 * 
+	 * @param connection
+	 * @return Solution[]
+	 * @throws SQLException
+	 */
+	static public Solution[] loadAll(Connection connection) throws SQLException {
 		ArrayList<Solution> solutions = new ArrayList<>();
-		Statement st = conn.createStatement();
+		Statement st = connection.createStatement();
 		ResultSet rs = st.executeQuery("Select * from solution");
 
 		while (rs.next()) {
@@ -125,28 +152,15 @@ public class Solution {
 		solutions.toArray(solutionArray);
 		return solutionArray;
 	}
-	static public Solution[] loadSolutionsByUser(Connection conn, int id) throws SQLException {
-		ArrayList<Solution> solutions = new ArrayList<>();
-		String sql = "SELECT * FROM solution where user_id=?";
-		PreparedStatement st = conn.prepareStatement(sql);
-		st.setInt(1, id);
-		ResultSet rs = st.executeQuery();
-		
-		while (rs.next()) {
-			Solution tempSolution = new Solution();
-			tempSolution.setCreated(rs.getDate("created"));
-			tempSolution.setUpdated(rs.getDate("updated"));
-			tempSolution.setDescription(rs.getString("description"));
-			tempSolution.setExcerciseId(rs.getInt("excercise_id"));
-			tempSolution.setUserId(rs.getInt("user_id"));
-			tempSolution.setId(rs.getInt("id"));
-			solutions.add(tempSolution);
-		}
-		Solution[] solutionArray = new Solution[solutions.size()];
-		solutions.toArray(solutionArray);
-		return solutionArray;
-	}
 
+	/**Returns Solution by given solution.id.
+	 * 
+	 * @param Connection connection
+	 * @param id
+	 * @return Solution
+	 * @throws SQLException
+	 * @throws NullPointerException
+	*/
 	static public Solution loadById(Connection conn, int id) throws SQLException, NullPointerException {
 		String sql = "SELECT * FROM solution where id=?";
 		PreparedStatement preparedStatement = conn.prepareStatement(sql);
@@ -165,16 +179,64 @@ public class Solution {
 		return null;
 	}
 
-	public void delete(Connection conn) throws SQLException {
-		if (this.id != 0) {
-			String sql = "DELETE FROM solution WHERE id= ?";
-			PreparedStatement preparedStatement = conn.prepareStatement(sql);
-			preparedStatement.setInt(1, this.id);
-			preparedStatement.executeUpdate();
-			this.id = 0;
+	/**Returns list of all Solutions connected to given User.
+	 * 
+	 * @param connection
+	 * @param id
+	 * @return Solution[]
+	 * @throws SQLException
+	 */
+	static public Solution[] loadSolutionsByUser(Connection connection, int id) throws SQLException {
+		ArrayList<Solution> solutions = new ArrayList<>();
+		String sql = "SELECT * FROM solution where user_id=?";
+		PreparedStatement st = connection.prepareStatement(sql);
+		st.setInt(1, id);
+		ResultSet rs = st.executeQuery();
+		
+		while (rs.next()) {
+			Solution tempSolution = new Solution();
+			tempSolution.setCreated(rs.getDate("created"));
+			tempSolution.setUpdated(rs.getDate("updated"));
+			tempSolution.setDescription(rs.getString("description"));
+			tempSolution.setExcerciseId(rs.getInt("excercise_id"));
+			tempSolution.setUserId(rs.getInt("user_id"));
+			tempSolution.setId(rs.getInt("id"));
+			solutions.add(tempSolution);
 		}
+		Solution[] solutionArray = new Solution[solutions.size()];
+		solutions.toArray(solutionArray);
+		return solutionArray;
 	}
+	
+	/**Returns list of Solutions connected to the Exercise.
+	 * 	
+	 * @param connection
+	 * @param id
+	 * @return Solution[]
+	 * @throws SQLException
+	 */
+	static public Solution[] loadSolutionsByExerciseId(Connection connection, int id) throws SQLException{
+		ArrayList<Solution> solutions = new ArrayList<>();
+		String sql = "SELECT * FROM solution where exercise_id=? order by created desc";
+		PreparedStatement st = connection.prepareStatement(sql);
+		st.setInt(1, id);
+		ResultSet rs = st.executeQuery();
 
+		while (rs.next()) {
+			Solution tempSolution = new Solution();
+			tempSolution.setCreated(rs.getDate("created"));
+			tempSolution.setUpdated(rs.getDate("updated"));
+			tempSolution.setDescription(rs.getString("description"));
+			tempSolution.setExcerciseId(rs.getInt("exercise_id"));
+			tempSolution.setUserId(rs.getInt("user_id"));
+			tempSolution.setId(rs.getInt("id"));
+			solutions.add(tempSolution);
+		}
+		Solution[] solutionArray = new Solution[solutions.size()];
+		solutions.toArray(solutionArray);
+		return solutionArray;
+	}
+	
 	@Override
 	public String toString() {
 		StringBuilder sb = new StringBuilder();
