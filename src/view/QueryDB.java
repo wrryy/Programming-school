@@ -12,7 +12,7 @@ import java.util.Scanner;
 
 import data.User;
 
-public class QueryDB {
+public class QueryDB <Querable>{
 
 	public static void main(String[] args) {
 		Scanner scan = new Scanner(System.in);
@@ -34,12 +34,12 @@ public class QueryDB {
 	 * @param connection
 	 * @throws SQLException
 	 */
-	static void menu(Scanner scan, Connection connection) throws SQLException {
+	public static void menu(Scanner scan, Connection connection) throws SQLException {
 		boolean check = true;
 		while (check) {
 			showMenu();
-			String choice = scan.next();
-			if (choice.equals("1") || choice.toLowerCase().equals("show")) {
+			String choice = scan.next().toLowerCase();
+			if (choice.matches("1") || choice.equals("show")) {
 				System.out.println(MessageFormat.format("{0}s:", tableName));
 				User[] dbRecord = User.loadAll(connection);
 				for (int i = 0; i < dbRecord.length; i++) {
@@ -47,26 +47,18 @@ public class QueryDB {
 				}
 				System.out.println();
 
-			} else if (choice.equals("2") || choice.toLowerCase().equals("add")) {
+			} else if (choice.equals("2") || choice.equals("add")) {
 				System.out.printf("Enter info about new %s\n", tableName);
-				ArrayList<String> input = getData(connection, scan, 2);
-				User newDbRecord = new User(input.get(0), input.get(2), input.get(1), Integer.parseInt(input.get(3)));
-				newDbRecord.saveToDB(connection);
+				createRecord(connection, scan);
 
-			} else if (choice.equals("3") || choice.toLowerCase().equals("edit")) {
+			} else if (choice.matches("edit|3") || choice.equals("edit")) {
 				System.out.printf("Enter updated info about %s", tableName);
-				ArrayList<String> input = getData(connection, scan, 1);
-				User updatedDbRecord = User.loadById(connection, Integer.parseInt(input.get(0)));
-				updatedDbRecord.setUsername(input.get(1));
-				updatedDbRecord.setEmail(input.get(2));
-				updatedDbRecord.setPassword(input.get(3));
-				updatedDbRecord.setUserGroupId(Integer.parseInt(input.get(4)));
-				updatedDbRecord.saveToDB(connection);
-			} else if (choice.equals("4") || choice.toLowerCase().equals("delete")) {
+				updateRecord(connection, scan);
+			} else if (choice.matches("delete|4") /*|| choice.equals("delete")*/) {
 				System.out.printf("Enter %s.id  to delete:", tableName);
 				User.loadById(connection, intInputCheck0(scan)).delete(connection);
 
-			} else if (choice.equals("5") || choice.toLowerCase().equals("quit")) {
+			} else if (choice.equals("5") || choice.equals("quit")) {
 				System.out.println("Quiting program.");
 				check = false;
 			}
@@ -77,10 +69,42 @@ public class QueryDB {
 	 * Prints menu options.
 	 * 
 	 */
-	static public void showMenu() {
+	static void showMenu() {
 		String menu = MessageFormat.format("Choose option:\n" + "1. Show all {0}s \n" + "2. Add {0} \n"
 				+ "3. Edit {0} \n" + "4. Delete {0} \n" + "5. Quit", tableName);
 		System.out.println(menu);
+	}
+
+	/**
+	 * Returns new DB record created from user input.
+	 * 
+	 * @param connection
+	 * @param scan
+	 * @return
+	 * @throws SQLException
+	 */
+	static void createRecord(Connection connection, Scanner scan) throws SQLException {
+		ArrayList<String> input = getData(connection, scan, 2);
+		User newDbRecord = new User(input.get(0), input.get(2), input.get(1), Integer.parseInt(input.get(3)));
+		newDbRecord.saveToDB(connection);
+	}
+
+	/**
+	 * Returns updated DB record.
+	 * 
+	 * @param connection
+	 * @param scan
+	 * @return
+	 * @throws SQLException
+	 */
+	static void updateRecord(Connection connection, Scanner scan) throws SQLException {
+		ArrayList<String> input = getData(connection, scan, 1);
+		User updatedDbRecord = User.loadById(connection, Integer.parseInt(input.get(0)));
+		updatedDbRecord.setUsername(input.get(1));
+		updatedDbRecord.setEmail(input.get(2));
+		updatedDbRecord.setPassword(input.get(3));
+		updatedDbRecord.setUserGroupId(Integer.parseInt(input.get(4)));
+		updatedDbRecord.saveToDB(connection);
 	}
 
 	/**
@@ -108,7 +132,7 @@ public class QueryDB {
 	}
 
 	/**
-	 * Returns integer from user input if it meets certain conditions.
+	 * Returns integer from user input if it meets greater than zero condition.
 	 * 
 	 * @param scanner
 	 * @return int
@@ -117,10 +141,11 @@ public class QueryDB {
 		int number;
 		do {
 			while (!scanner.hasNextInt()) {
-				System.out.println("That's not a number!");
-				scanner.next(); // this is important!
+				System.out.println("That is not a number!");
+				scanner.next(); 
 			}
 			number = scanner.nextInt();
+			System.out.println("Enter integer greater than zero!");
 		} while (number <= 0);
 		return number;
 	}

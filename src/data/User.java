@@ -9,7 +9,7 @@ import java.util.ArrayList;
 
 import org.mindrot.jbcrypt.BCrypt;
 
-public class User {
+public class User implements Queryable {
 
 	private int id = 0;
 	private String username;
