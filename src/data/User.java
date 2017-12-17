@@ -9,7 +9,7 @@ import java.util.ArrayList;
 
 import org.mindrot.jbcrypt.BCrypt;
 
-public class User implements Queryable {
+public class User  {
 
 	private int id = 0;
 	private String username;
@@ -214,8 +214,8 @@ public class User implements Queryable {
 		
 		while (rs.next()) {
 			Solution tempSolution = new Solution();
-			tempSolution.setCreated(rs.getDate("created"));
-			tempSolution.setUpdated(rs.getDate("updated"));
+			tempSolution.setCreated(rs.getString("created"));
+			tempSolution.setUpdated(rs.getString("updated"));
 			tempSolution.setDescription(rs.getString("description"));
 			tempSolution.setExcerciseId(rs.getInt("excercise_id"));
 			tempSolution.setUserId(rs.getInt("user_id"));

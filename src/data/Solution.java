@@ -1,7 +1,6 @@
 package data;
 
 import java.sql.Connection;
-import java.sql.Date;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -10,8 +9,8 @@ import java.util.ArrayList;
 
 public class Solution {
 	private int id = 0;
-	private Date created;
-	private Date updated;
+	private String created;
+	private String updated;
 	private String description;
 	private int excerciseId;
 	private int userId;
@@ -19,8 +18,14 @@ public class Solution {
 	public Solution() {
 	}
 
-	public Solution(Date created, Date updated, String description, int excerciseId, int userId) {
-		super();
+	public Solution(String created, int excerciseId, int userId) {
+		setCreated(created);
+		setUpdated(null);
+		setDescription(null);
+		setExcerciseId(excerciseId);
+		setUserId(userId);
+	}
+	public Solution(String created, String updated, String description, int excerciseId, int userId) {
 		setCreated(created);
 		setUpdated(updated);
 		setDescription(description);
@@ -36,19 +41,19 @@ public class Solution {
 		this.id = id;
 	}
 
-	public Date getCreated() {
+	public String getCreated() {
 		return created;
 	}
 
-	public void setCreated(Date created) {
+	public void setCreated(String created) {
 		this.created = created;
 	}
 
-	public Date getUpdated() {
+	public String getUpdated() {
 		return updated;
 	}
 
-	public void setUpdated(Date updated) {
+	public void setUpdated(String updated) {
 		this.updated = updated;
 	}
 
@@ -85,10 +90,10 @@ public class Solution {
 		if (this.getId() == 0) {
 			String[] generatedColumns = { "id" };
 			PreparedStatement pst = connection.prepareStatement(
-					"Insert into  solution(created, updated, description, excercise_id, user_id) Values(?, ?, ?, ?, ?)",
+					"Insert into  solution(created, updated, description, exercise_id, user_id) Values(?, ?, ?, ?, ?)",
 					generatedColumns);
-			pst.setDate(1, this.getCreated());
-			pst.setDate(2, this.getUpdated());
+			pst.setString(1, this.getCreated());
+			pst.setString(2, this.getUpdated());
 			pst.setString(3, this.getDescription());
 			pst.setInt(4, this.getExcerciseId());
 			pst.setInt(5, this.getUserId());
@@ -99,9 +104,9 @@ public class Solution {
 			}
 		} else {
 			PreparedStatement pst = connection.prepareStatement(
-					"Update solution Set created=?, updated=?, description=?, excercise_id=?, user_id=? Where id = ?");
-			pst.setDate(1, this.getCreated());
-			pst.setDate(2, this.getUpdated());
+					"Update solution Set created=?, updated=?, description=?, exercise_id=?, user_id=? Where id = ?");
+			pst.setString(1, this.getCreated());
+			pst.setString(2, this.getUpdated());
 			pst.setString(3, this.getDescription());
 			pst.setInt(4, this.getExcerciseId());
 			pst.setInt(5, this.getUserId());
@@ -140,10 +145,10 @@ public class Solution {
 
 		while (rs.next()) {
 			Solution tempSolution = new Solution();
-			tempSolution.setCreated(rs.getDate("created"));
-			tempSolution.setUpdated(rs.getDate("updated"));
+			tempSolution.setCreated(rs.getString("created"));
+			tempSolution.setUpdated(rs.getString("updated"));
 			tempSolution.setDescription(rs.getString("description"));
-			tempSolution.setExcerciseId(rs.getInt("excercise_id"));
+			tempSolution.setExcerciseId(rs.getInt("exercise_id"));
 			tempSolution.setUserId(rs.getInt("user_id"));
 			tempSolution.setId(rs.getInt("id"));
 			solutions.add(tempSolution);
@@ -168,10 +173,10 @@ public class Solution {
 		ResultSet rs = preparedStatement.executeQuery();
 		if (rs.next()) {
 			Solution tempSolution = new Solution();
-			tempSolution.setCreated(rs.getDate("created"));
-			tempSolution.setUpdated(rs.getDate("updated"));
+			tempSolution.setCreated(rs.getString("created"));
+			tempSolution.setUpdated(rs.getString("updated"));
 			tempSolution.setDescription(rs.getString("description"));
-			tempSolution.setExcerciseId(rs.getInt("excercise_id"));
+			tempSolution.setExcerciseId(rs.getInt("exercise_id"));
 			tempSolution.setUserId(rs.getInt("user_id"));
 			tempSolution.setId(rs.getInt("id"));
 			return tempSolution;
@@ -195,10 +200,10 @@ public class Solution {
 		
 		while (rs.next()) {
 			Solution tempSolution = new Solution();
-			tempSolution.setCreated(rs.getDate("created"));
-			tempSolution.setUpdated(rs.getDate("updated"));
+			tempSolution.setCreated(rs.getString("created"));
+			tempSolution.setUpdated(rs.getString("updated"));
 			tempSolution.setDescription(rs.getString("description"));
-			tempSolution.setExcerciseId(rs.getInt("excercise_id"));
+			tempSolution.setExcerciseId(rs.getInt("exercise_id"));
 			tempSolution.setUserId(rs.getInt("user_id"));
 			tempSolution.setId(rs.getInt("id"));
 			solutions.add(tempSolution);
@@ -224,8 +229,8 @@ public class Solution {
 
 		while (rs.next()) {
 			Solution tempSolution = new Solution();
-			tempSolution.setCreated(rs.getDate("created"));
-			tempSolution.setUpdated(rs.getDate("updated"));
+			tempSolution.setCreated(rs.getString("created"));
+			tempSolution.setUpdated(rs.getString("updated"));
 			tempSolution.setDescription(rs.getString("description"));
 			tempSolution.setExcerciseId(rs.getInt("exercise_id"));
 			tempSolution.setUserId(rs.getInt("user_id"));
@@ -240,7 +245,7 @@ public class Solution {
 	@Override
 	public String toString() {
 		StringBuilder sb = new StringBuilder();
-		sb.append(this.getExcerciseId()).append(" ").append(this.getDescription()).append(" ").append(this.getUserId());
+		sb.append("Exercise: ").append(this.getExcerciseId()).append(", User: ").append(this.getUserId()).append(" ").append(this.created).append("\n").append(this.getDescription()).append(" ");
 		return sb.toString();
 	}
 

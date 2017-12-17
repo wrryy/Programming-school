@@ -1,4 +1,4 @@
-package view;
+package admin.view;
 
 import java.sql.Connection;
 import java.sql.DriverManager;
@@ -12,17 +12,7 @@ import java.util.Scanner;
 
 import data.User;
 
-public class QueryDB <Querable>{
-
-	public static void main(String[] args) {
-		Scanner scan = new Scanner(System.in);
-		String url = "jdbc:mysql://localhost:3306/school?useSSL=false";
-		try (Connection conn = DriverManager.getConnection(url, "root", "coderslab")) {
-			menu(scan, conn);
-		} catch (SQLException e) {
-			e.printStackTrace();
-		}
-	}
+public class QueryTableUser {
 
 	static private String tableName = "User";
 	static private String tableDBName = "user";
@@ -39,26 +29,21 @@ public class QueryDB <Querable>{
 		while (check) {
 			showMenu();
 			String choice = scan.next().toLowerCase();
-			if (choice.matches("1") || choice.equals("show")) {
-				System.out.println(MessageFormat.format("{0}s:", tableName));
-				User[] dbRecord = User.loadAll(connection);
-				for (int i = 0; i < dbRecord.length; i++) {
-					System.out.println(dbRecord[i].getId() + ": " + dbRecord[i].toString());
-				}
-				System.out.println();
+			if (choice.matches("1|show")) {
+				showAllUsers(connection);
 
-			} else if (choice.equals("2") || choice.equals("add")) {
-				System.out.printf("Enter info about new %s\n", tableName);
+			} else if (choice.matches("2|add")) {
+				System.out.printf("Enter info about new %s:\n", tableName);
 				createRecord(connection, scan);
 
-			} else if (choice.matches("edit|3") || choice.equals("edit")) {
-				System.out.printf("Enter updated info about %s", tableName);
+			} else if (choice.matches("edit|3")) {
+				System.out.printf("Enter updated info about %s:\n", tableName);
 				updateRecord(connection, scan);
-			} else if (choice.matches("delete|4") /*|| choice.equals("delete")*/) {
-				System.out.printf("Enter %s.id  to delete:", tableName);
+			} else if (choice.matches("delete|4")) {
+				System.out.printf("Enter %s.id  to delete:\n", tableName);
 				User.loadById(connection, intInputCheck0(scan)).delete(connection);
 
-			} else if (choice.equals("5") || choice.equals("quit")) {
+			} else if (choice.matches("5|quit")) {
 				System.out.println("Quiting program.");
 				check = false;
 			}
@@ -74,7 +59,21 @@ public class QueryDB <Querable>{
 				+ "3. Edit {0} \n" + "4. Delete {0} \n" + "5. Quit", tableName);
 		System.out.println(menu);
 	}
-
+	
+	/**Prints all Users in DB.
+	 * 
+	 * @param connection
+	 * @throws SQLException
+	 */
+	static void showAllUsers(Connection connection) throws SQLException {
+		System.out.println(MessageFormat.format("{0}s:", tableName));
+		User[] dbRecord = User.loadAll(connection);
+		for (int i = 0; i < dbRecord.length; i++) {
+			System.out.println(dbRecord[i].getId() + ": " + dbRecord[i].toString());
+		}
+		System.out.println();
+	}
+	
 	/**
 	 * Returns new DB record created from user input.
 	 * 
@@ -122,12 +121,13 @@ public class QueryDB <Querable>{
 		ResultSetMetaData rsmd = rs.getMetaData();
 		int columnsNumber = rsmd.getColumnCount();
 		ArrayList<String> inputData = new ArrayList<>();
-		if (rs.next()) {
 			for (int i = start; i <= columnsNumber; i++) {
 				System.out.println("Type in " + rsmd.getColumnName(i) + ":");
+				if(i==5) {
+					inputData.add(intInputCheck0(scan)+"");
+				}else {
 				inputData.add(scan.next());
-			}
-		}
+				}}
 		return inputData;
 	}
 
@@ -145,7 +145,6 @@ public class QueryDB <Querable>{
 				scanner.next(); 
 			}
 			number = scanner.nextInt();
-			System.out.println("Enter integer greater than zero!");
 		} while (number <= 0);
 		return number;
 	}

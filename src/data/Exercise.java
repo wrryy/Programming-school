@@ -150,8 +150,8 @@ public class Exercise {
 
 		while (rs.next()) {
 			Solution tempSolution = new Solution();
-			tempSolution.setCreated(rs.getDate("created"));
-			tempSolution.setUpdated(rs.getDate("updated"));
+			tempSolution.setCreated(rs.getString("created"));
+			tempSolution.setUpdated(rs.getString("updated"));
 			tempSolution.setDescription(rs.getString("description"));
 			tempSolution.setExcerciseId(rs.getInt("exercise_id"));
 			tempSolution.setUserId(rs.getInt("user_id"));
@@ -177,8 +177,8 @@ public class Exercise {
 			ResultSet rs = preparedStatement.executeQuery();
 			if (rs.next()) {
 				Solution tempSolution = new Solution();
-				tempSolution.setCreated(rs.getDate("created"));
-				tempSolution.setUpdated(rs.getDate("updated"));
+				tempSolution.setCreated(rs.getString("created"));
+				tempSolution.setUpdated(rs.getString("updated"));
 				tempSolution.setDescription(rs.getString("description"));
 				tempSolution.setExcerciseId(rs.getInt("excercise_id"));
 				tempSolution.setUserId(rs.getInt("user_id"));
