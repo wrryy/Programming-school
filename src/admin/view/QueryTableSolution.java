@@ -5,10 +5,10 @@ import java.sql.DriverManager;
 import java.sql.SQLException;
 import java.text.MessageFormat;
 import java.time.LocalDateTime;
-import java.util.Iterator;
 import java.util.Scanner;
 
 import data.Solution;
+import system.IntegerInputCheck;
 
 public class QueryTableSolution {
 
@@ -52,7 +52,7 @@ public class QueryTableSolution {
 
 			} else if (choice.matches("delete|4")) {
 				System.out.printf("Enter %s.id  to delete:\n", tableName);
-				Solution.loadById(connection, intInputCheck0(scan)).delete(connection);
+				Solution.loadById(connection, IntegerInputCheck.check(scan)).delete(connection);
 
 			} else if (choice.matches("5|quit")) {
 				System.out.println("Quiting program.");
@@ -86,7 +86,7 @@ public class QueryTableSolution {
 	}
 	
 	static void showSolutionsByUser(Connection connection, Scanner scan) throws SQLException {
-		int userId = intInputCheck0(scan);
+		int userId = IntegerInputCheck.check(scan);
 		Solution[] solutions = Solution.loadSolutionsByUser(connection, userId);
 		for(Solution solution: solutions) {
 			System.out.println(solution.toString());
@@ -108,9 +108,9 @@ public class QueryTableSolution {
 	 */
 	static void createRecord(Connection connection, Scanner scan) throws SQLException {
 		System.out.println("Enter User id:");
-		int userId = intInputCheck0(scan);
+		int userId = IntegerInputCheck.check(scan);
 		System.out.println("Enter Exercise id:");
-		int exerciseId = intInputCheck0(scan);
+		int exerciseId = IntegerInputCheck.check(scan);
 		String created = LocalDateTime.now().toString();
 		Solution newDbRecord = new Solution(created, exerciseId, userId);
 		newDbRecord.saveToDB(connection);
@@ -163,21 +163,4 @@ public class QueryTableSolution {
 //		return inputData;
 //	}
 
-	/**
-	 * Returns integer from user input if it meets greater than zero condition.
-	 * 
-	 * @param scanner
-	 * @return int
-	 */
-	static int intInputCheck0(Scanner scanner) {
-		int number;
-		do {
-			while (!scanner.hasNextInt()) {
-				System.out.println("That is not a number!");
-				scanner.next();
-			}
-			number = scanner.nextInt();
-		} while (number <= 0);
-		return number;
-	}
 }
