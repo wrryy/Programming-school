@@ -18,6 +18,14 @@ public class Solution {
 	public Solution() {
 	}
 
+	
+	public Solution(String updated, String description, int excerciseId, int userId) {
+		setCreated(created);
+		setUpdated(null);
+		setDescription(null);
+		setExcerciseId(excerciseId);
+		setUserId(userId);
+	}
 	public Solution(String created, int excerciseId, int userId) {
 		setCreated(created);
 		setUpdated(null);
@@ -245,7 +253,7 @@ public class Solution {
 	@Override
 	public String toString() {
 		StringBuilder sb = new StringBuilder();
-		sb.append("Exercise: ").append(this.getExcerciseId()).append(", User: ").append(this.getUserId()).append(" ").append(this.created).append("\n").append(this.getDescription()).append(" ");
+		sb.append("Exercise: ").append(this.getExcerciseId()).append(", User: ").append(this.getUserId()).append(", Created: ").append(this.created.substring(0,10)).append("\n   ").append(this.getDescription()).append(" ");
 		return sb.toString();
 	}
 
