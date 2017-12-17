@@ -10,14 +10,14 @@ public class IntegerInputCheck {
 	 * @param scanner
 	 * @return int
 	 */
-	public static int check(Scanner scanner) {
+	public static int check(Scanner scan) {
 		int number;
 		do {
-			while (!scanner.hasNextInt()) {
+			while (!scan.hasNextInt()) {
 				System.out.println("That is not a number!");
-				scanner.next();
+				scan.next();
 			}
-			number = scanner.nextInt();
+			number = scan.nextInt();
 		} while (number <= 0);
 		return number;
 	}
