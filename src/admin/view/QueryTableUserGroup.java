@@ -11,6 +11,7 @@ import java.util.ArrayList;
 import java.util.Scanner;
 
 import data.UserGroup;
+import system.IntegerInputCheck;
 
 public class QueryTableUserGroup {
 
@@ -41,7 +42,7 @@ public class QueryTableUserGroup {
 				updateRecord(connection, scan);
 			} else if (choice.matches("delete|4")) {
 				System.out.printf("Enter %s.id  to delete:\n", tableName);
-				UserGroup.loadById(connection, intInputCheck0(scan)).delete(connection);
+				UserGroup.loadById(connection, IntegerInputCheck.check(scan)).delete(connection);
 
 			} else if (choice.matches("5|quit")) {
 				System.out.println("Quiting program.");
@@ -123,23 +124,5 @@ public class QueryTableUserGroup {
 			inputData.add(scan.nextLine());
 		}
 		return inputData;
-	}
-
-	/**
-	 * Returns integer from user input if it meets greater than zero condition.
-	 * 
-	 * @param scanner
-	 * @return int
-	 */
-	static int intInputCheck0(Scanner scanner) {
-		int number;
-		do {
-			while (!scanner.hasNextInt()) {
-				System.out.println("That is not a number!");
-				scanner.next();
-			}
-			number = scanner.nextInt();
-		} while (number <= 0);
-		return number;
 	}
 }
